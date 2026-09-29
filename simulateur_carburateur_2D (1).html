@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Le carburateur en coupe</title>
+<style>
+:root{--ink:#16222e;--mute:#5b6b7a;--line:#d8dfe6;--air:#2d7fb8;--idle:#2e9c6f;--main:#d9860b;--start:#c9432f;--pump:#7b5cc6}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font:14px/1.45 'Avenir Next','Segoe UI',system-ui,sans-serif}
+.app{max-width:1240px;margin:0 auto;padding:22px 20px 40px}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px 20px;margin-bottom:16px}
+h1{font:600 30px/1.1 'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;margin:0}
+.sub{color:var(--mute);max-width:560px;margin-top:6px;font-size:13px}
+.tools{display:flex;gap:8px;flex-wrap:wrap}
+button{font:inherit;font-size:13px;background:#fff;color:var(--ink);border:1px solid #c5ced8;border-radius:8px;padding:7px 12px;cursor:pointer}
+button:hover{border-color:var(--ink)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--air);outline-offset:2px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:26px;align-items:start}
+svg{width:100%;height:auto;display:block;border:1px solid var(--line);border-radius:8px;background:#fff}
+svg text{font-family:inherit;font-size:12px;fill:var(--ink)}
+svg .sm{font-size:10.5px;fill:var(--mute)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--mute);margin:10px 2px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.readouts{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.ro{background:#fff;padding:10px 12px}
+.ro span{display:block;font-size:12px;color:var(--mute)}
+.ro b{font-size:16px;font-weight:600}
+.note{margin-top:14px;padding:12px 14px;border-left:3px solid var(--air);background:#f4f8fb;border-radius:0 8px 8px 0}
+.note b{display:block;margin-bottom:3px}
+.note div{font-size:13px;color:#34465a}
+.ctl{padding:14px 0;border-bottom:1px solid var(--line)}
+.ctl:first-child{padding-top:0}
+.ctl label{display:flex;justify-content:space-between;font-weight:600;font-size:13px}
+.ctl .v{color:var(--air);font-variant-numeric:tabular-nums}
+.ctl small{display:block;color:var(--mute);font-size:12px;margin-top:3px}
+input[type=range]{width:100%;margin:8px 0 0;accent-color:var(--air)}
+h2{font-size:13px;font-weight:600;margin:20px 0 4px;color:var(--mute)}
+h2:first-child{margin-top:0}
+.meter{position:relative;height:10px;background:linear-gradient(90deg,#e8eef3,#e8eef3);border-radius:99px;margin:10px 0 6px}
+.zone{position:absolute;left:45%;width:11%;top:0;bottom:0;background:#bfe5d3}
+.meter i{position:absolute;top:-3px;width:4px;height:16px;border-radius:2px;background:var(--ink);left:50%;transition:left .12s}
+.good{color:#1f7a55}.warn{color:#b26a00}.bad{color:#b3261e}
+@media(max-width:940px){.layout{grid-template-columns:1fr}}
+@media(max-width:560px){.readouts{grid-template-columns:repeat(2,1fr)}h1{font-size:24px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+ <div><h1>Le carburateur en coupe</h1><div class="sub">Simulation pédagogique : air, dépression, cuve à niveau constant et circuits d'essence. Un modèle simplifié, pas une mesure réelle.</div></div>
+ <div class="tools">
+  <button data-s="base">Réglages de base</button><button data-s="cold">Démarrage à froid</button><button data-s="reprise">Reprise</button><button data-s="full">Plein gaz</button>
+ </div>
+</header>
+
+<div class="layout">
+<main>
+<svg id="svg" viewBox="0 0 900 570" role="img" aria-label="Coupe animée d'un carburateur à cuve latérale">
+<defs>
+ <pattern id="hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" fill="#fff"/><line x1="0" y1="0" x2="0" y2="7" stroke="#c3ccd6" stroke-width="1.3"/></pattern>
+ <linearGradient id="gas" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4c25b"/><stop offset="1" stop-color="#d18a17"/></linearGradient>
+ <clipPath id="bowlClip"><rect x="240" y="330" width="410" height="190"/></clipPath>
+</defs>
+
+<!-- corps hachuré et conduit d'air -->
+<rect x="60" y="100" width="780" height="220" fill="url(#hatch)" stroke="#16222e" stroke-width="2.5"/>
+<path d="M60 150H260C310 150 330 178 380 178H470C520 178 540 150 590 150H840V250H590C540 250 520 222 470 222H380C330 222 310 250 260 250H60Z" fill="#eef6fc"/>
+<ellipse id="vz" cx="425" cy="200" rx="52" ry="20" fill="#2d7fb8" opacity=".1"/>
+<rect id="mz" x="708" y="152" width="130" height="96" fill="#2d7fb8" opacity=".1"/>
+<path d="M60 150H260C310 150 330 178 380 178H470C520 178 540 150 590 150H840M60 250H260C310 250 330 222 380 222H470C520 222 540 250 590 250H840" fill="none" stroke="#16222e" stroke-width="3"/>
+
+<!-- cuve -->
+<rect x="230" y="320" width="430" height="210" fill="url(#hatch)" stroke="#16222e" stroke-width="2.5"/>
+<rect x="240" y="330" width="410" height="190" fill="#fff"/>
+<g clip-path="url(#bowlClip)"><path id="fuel" d="" fill="url(#gas)"/></g>
+
+<g id="ch"></g>
+
+<!-- pompe de reprise -->
+<rect x="314" y="446" width="36" height="64" fill="#f0eaff" stroke="#16222e" stroke-width="1.5"/>
+<rect id="piston" x="317" y="452" width="30" height="8" fill="#7b5cc6"/>
+
+<!-- flotteur et pointeau -->
+<line id="arm" x1="648" y1="392" x2="572" y2="384" stroke="#16222e" stroke-width="3"/>
+<circle cx="648" cy="392" r="4" fill="#16222e"/>
+<ellipse id="float" cx="610" cy="401" rx="34" ry="13" fill="#e6ebf0" stroke="#16222e" stroke-width="2"/>
+<line id="needle" x1="585" y1="376" x2="585" y2="384" stroke="#16222e" stroke-width="3"/>
+<rect x="578" y="371" width="14" height="6" fill="#16222e"/>
+
+<!-- vis de richesse -->
+<g id="mixScrew"><rect id="msN" x="719" y="290" width="6" height="30" fill="#16222e"/><rect x="711" y="318" width="22" height="10" rx="2" fill="#16222e"/></g>
+<!-- vis de ralenti -->
+<g><line x1="800" y1="130" x2="800" y2="100" stroke="#16222e" stroke-width="4"/><rect id="isH" x="790" y="90" width="20" height="8" rx="2" fill="#16222e"/></g>
+
+<!-- volet de starter et papillon -->
+<g id="chk"><rect x="176" y="152" width="8" height="96" rx="3" fill="#c9432f"/><circle cx="180" cy="200" r="6" fill="#16222e"/></g>
+<g id="thr"><rect x="696" y="152" width="8" height="96" rx="3" fill="#2d7fb8"/><circle cx="700" cy="200" r="6" fill="#16222e"/></g>
+
+<g id="air" fill="#2d7fb8"></g>
+<g id="drops"></g>
+
+<!-- cadran -->
+<g id="dial"><circle cx="765" cy="470" r="54" fill="#fff" stroke="#16222e" stroke-width="2"/><g id="ticks"></g>
+ <g id="needleR"><line x1="765" y1="470" x2="765" y2="428" stroke="#b3261e" stroke-width="2.5" stroke-linecap="round"/></g><circle cx="765" cy="470" r="4" fill="#16222e"/>
+ <text x="765" y="500" text-anchor="middle" class="sm">tr/min ×1000</text></g>
+
+<!-- légendes -->
+<text x="66" y="58">Air entrant</text><text x="838" y="58" text-anchor="end">Vers le moteur</text>
+<g stroke="#16222e" stroke-width=".8">
+ <line x1="180" y1="90" x2="180" y2="150"/><line x1="425" y1="90" x2="425" y2="178"/><line x1="700" y1="90" x2="700" y2="150"/>
+</g>
+<text x="180" y="84" text-anchor="middle">Volet de starter</text>
+<text x="425" y="84" text-anchor="middle">Venturi</text>
+<text x="690" y="84" text-anchor="middle">Papillon</text>
+<text x="805" y="84" text-anchor="middle">Vis de ralenti</text>
+<text x="722" y="346" text-anchor="middle">Vis de richesse</text>
+<text x="850" y="384" text-anchor="end">Arrivée d'essence</text>
+<text x="575" y="350" text-anchor="end">Pointeau</text>
+<text x="572" y="414" text-anchor="end">Flotteur</text>
+<text x="272" y="514" text-anchor="middle" class="sm">starter</text>
+<text x="332" y="524" text-anchor="middle" class="sm">pompe</text>
+<text x="425" y="514" text-anchor="middle" class="sm">principal</text>
+<text x="500" y="514" text-anchor="middle" class="sm">ralenti</text>
+<text x="445" y="552" text-anchor="middle">Cuve à niveau constant</text>
+</svg>
+
+<div class="legend">
+ <span><i class="dot" style="background:var(--air)"></i>air (plus foncé = plus de dépression)</span>
+ <span><i class="dot" style="background:var(--idle)"></i>ralenti et progression</span>
+ <span><i class="dot" style="background:var(--main)"></i>circuit principal</span>
+ <span><i class="dot" style="background:var(--start)"></i>starter</span>
+ <span><i class="dot" style="background:var(--pump)"></i>pompe de reprise</span>
+</div>
+
+<div class="readouts">
+ <div class="ro"><span>Régime</span><b id="rpm">—</b></div>
+ <div class="ro"><span>Rapport air/essence</span><b id="afr">—</b></div>
+ <div class="ro"><span>Circuit dominant</span><b id="circuit">—</b></div>
+ <div class="ro"><span>Débit d'air</span><b id="airQ">—</b></div>
+ <div class="ro"><span>Dépression au venturi</span><b id="vac">—</b></div>
+ <div class="ro"><span>Dépression sous le papillon</span><b id="man">—</b></div>
+</div>
+<div class="note"><b id="stage">—</b><div id="explain">—</div></div>
+</main>
+
+<aside>
+ <h2>Commandes du conducteur</h2>
+ <div class="ctl"><label for="starter">Starter <span class="v" id="starterV"></span></label><input id="starter" type="range" min="0" max="100" value="0"><small>0 % = volet ouvert, 100 % = presque fermé.</small></div>
+ <div class="ctl"><label for="throttle">Accélérateur <span class="v" id="throttleV"></span></label><input id="throttle" type="range" min="0" max="100" value="8"><small>Ouvre le papillon et laisse passer plus d'air.</small></div>
+ <h2>Réglages du carburateur</h2>
+ <div class="ctl"><label for="mix">Vis de richesse <span class="v" id="mixV"></span></label><input id="mix" type="range" min="0" max="100" value="50"><small>Plus elle est ouverte, plus le ralenti reçoit d'essence.</small></div>
+ <div class="ctl"><label for="idle">Vis de ralenti <span class="v" id="idleV"></span></label><input id="idle" type="range" min="0" max="100" value="15"><small>Fixe l'ouverture minimale du papillon.</small></div>
+ <div class="ctl"><label for="pump">Pompe de reprise <span class="v" id="pumpV"></span></label><input id="pump" type="range" min="0" max="100" value="65"><small>Jet d'essence supplémentaire quand on ouvre vite les gaz.</small></div>
+ <h2>Richesse du mélange</h2>
+ <div class="meter"><div class="zone"></div><i id="mark"></i></div>
+ <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--mute)"><span>pauvre</span><span>riche</span></div>
+ <div id="mixT" style="margin-top:6px;font-weight:600">—</div>
+</aside>
+</div>
+</div>
+
+<script>
+(()=>{
+const $=id=>document.getElementById(id),NS='http://www.w3.org/2000/svg';
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),sm=(a,b,x)=>{x=clamp((x-a)/(b-a),0,1);return x*x*(3-2*x)};
+const IDS=['starter','throttle','mix','idle','pump'],DEF={starter:0,throttle:8,mix:50,idle:15,pump:65};
+const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);(p||$('svg')).appendChild(e);return e};
+
+// Circuits d'essence : tracé depuis le gicleur jusqu'à la sortie
+const CH={idle:['M500 500V272H722V250','#2e9c6f'],main:['M425 500V224','#d9860b'],starter:['M272 500V284H215V250','#c9432f'],pump:['M332 500V243','#7b5cc6'],inlet:['M850 364H585V376','#d9860b']};
+const flow={};
+for(const k in CH){const g=el('g',{},$('ch'));
+ el('path',{d:CH[k][0],fill:'none',stroke:'#16222e','stroke-width':11,'stroke-linejoin':'round'},g);
+ el('path',{d:CH[k][0],fill:'none',stroke:'#fff','stroke-width':7,'stroke-linejoin':'round'},g);
+ flow[k]={p:el('path',{d:CH[k][0],fill:'none',stroke:CH[k][1],'stroke-width':3.5,'stroke-dasharray':'7 7','stroke-linejoin':'round'},g),o:0};
+ if(k!=='inlet'&&k!=='main')el('rect',{x:+CH[k][0].match(/M(\d+)/)[1]-6,y:496,width:12,height:6,fill:'#16222e'},g);}
+el('rect',{x:419,y:496,width:12,height:6,fill:'#16222e'},$('ch'));
+el('rect',{x:420,y:214,width:10,height:9,fill:'#16222e'},$('ch')); // bec du gicleur principal
+
+// Cadran de régime
+for(let k=0;k<=7;k++){const a=(-225+k*270/7)*Math.PI/180,c=Math.cos(a),s=Math.sin(a);
+ el('line',{x1:765+c*46,y1:470+s*46,x2:765+c*52,y2:470+s*52,stroke:k>=6?'#b3261e':'#16222e','stroke-width':2},$('ticks'));
+ const t=el('text',{x:765+c*36+0,y:470+s*36+4,'text-anchor':'middle',class:'sm'},$('ticks'));t.textContent=k;}
+
+// Particules d'air et gouttes d'essence
+const hw=x=>{if(x<260||x>590)return 50;if(x<380)return 50-28*(.5-.5*Math.cos(Math.PI*(x-260)/120));if(x<=470)return 22;return 22+28*(.5-.5*Math.cos(Math.PI*(x-470)/120))};
+const P=[];for(let i=0;i<56;i++)P.push({x:60+Math.random()*780,o:Math.random()*1.7-.85,e:el('circle',{r:2.4},$('air'))});
+const D=[];for(let i=0;i<110;i++)D.push({on:false,x:0,y:0,l:0,m:1,e:el('circle',{r:2.6,opacity:0},$('drops'))});
+const EM=[{x:722,y:249,c:'#2e9c6f',k:'i'},{x:680,y:249,c:'#2e9c6f',k:'p'},{x:664,y:249,c:'#2e9c6f',k:'p'},{x:425,y:214,c:'#d9860b',k:'m'},{x:215,y:249,c:'#c9432f',k:'s'},{x:332,y:243,c:'#7b5cc6',k:'u'}];
+
+const S={air:.07,F:.07,rpm:850,lvl:397,pulse:0,prevTh:.08,stalled:false,time:0};
+const T={};
+
+function step(dt){
+ const v=id=>+$(id).value/100;
+ const st=v('starter'),th=v('throttle'),mix=v('mix'),idl=v('idle'),pump=v('pump');
+ IDS.forEach(id=>$(id+'V').textContent=$(id).value+' %');
+ S.time+=dt;
+
+ // Géométrie : angle des volets (0° = fermé, 90° = à plat dans le flux)
+ const t=Math.max(th,.02+idl*.12),thA=2+t*88,chA=90-st*82,rad=Math.PI/180;
+ const aT=Math.pow(1-Math.cos(thA*rad),.55)*(.25+.75*Math.sqrt(1-Math.cos(chA*rad)));
+
+ // Pompe de reprise : déclenchée par la vitesse d'ouverture
+ const rate=(th-S.prevTh)/Math.max(dt,.001);S.prevTh=th;
+ if(rate>.6)S.pulse=Math.max(S.pulse,pump*clamp(rate/3,0,1));
+ S.pulse*=Math.exp(-dt/.35);
+
+ // L'air répond vite, l'essence avec retard : d'où le creux à l'accélération
+ S.air+=(aT-S.air)*(1-Math.exp(-dt/.06));const a=S.air;
+ const wm=sm(.22,.6,a),wp=(1-wm)*sm(.06,.25,a),wi=1-wm-wp,ki=.4+1.2*mix;
+ const FT=(wi*ki+wp+wm*1.02+.95*st+S.pulse*.6)*aT;
+ S.F+=(FT-S.F)*(1-Math.exp(-dt/.3));
+ const r=clamp(S.F/Math.max(a,.02),.2,2.6);
+
+ // Moteur
+ const eff=Math.exp(-Math.pow(Math.log(r)/.32,2));
+ if(S.stalled){if(eff>.35)S.stalled=false}else if(eff<.1&&a<.2)S.stalled=true;
+ const rpmT=S.stalled?0:(450+5400*a)*(.3+.7*eff);
+ S.rpm+=(rpmT-S.rpm)*(1-Math.exp(-dt/.5));
+ const Vk=8*a*a,Mk=62*(1-.9*a);
+
+ // Cuve : le niveau baisse un peu quand la consommation monte, le pointeau compense
+ S.lvl+=(397+12*clamp(S.F*1.3,0,1)-S.lvl)*(1-Math.exp(-dt/.8));
+ const gap=clamp((S.lvl-397.5)/10,0,1);
+
+ // Débits par circuit
+ const f={i:wi*ki*a,p:wp*a,m:wm*a*1.02,s:.95*st*a,u:S.pulse};
+ const op=x=>clamp(.15+x*6,.15,1);
+ const opac={idle:op(f.i),main:op(f.m),starter:st>.03?.35+.65*st:.12,pump:clamp(S.pulse*2,.08,1),inlet:.2+.8*gap};
+ const spd={idle:20+300*f.i+200*f.p,main:20+200*f.m,starter:20+260*st,pump:20+200*S.pulse,inlet:10+100*gap};
+ for(const k in flow){flow[k].o-=dt*spd[k];flow[k].p.setAttribute('stroke-dashoffset',flow[k].o);flow[k].p.parentNode.style.opacity=opac[k]}
+
+ // Dessin : volets, vis, cuve, cadran
+ $('chk').setAttribute('transform',`rotate(${chA} 180 200)`);
+ $('thr').setAttribute('transform',`rotate(${thA} 700 200)`);
+ $('msN').setAttribute('y',276+mix*22);
+ $('isH').setAttribute('y',90-idl*8);
+ $('vz').setAttribute('opacity',(.06+.45*a*a).toFixed(3));
+ $('mz').setAttribute('opacity',(.05+.3*Mk/62).toFixed(3));
+ let d=`M240 ${S.lvl}`;for(let x=250;x<=650;x+=10)d+=`L${x} ${(S.lvl+Math.sin(x*.05+S.time*2.2)*1.2).toFixed(1)}`;
+ $('fuel').setAttribute('d',d+'V520H240Z');
+ $('float').setAttribute('cy',S.lvl+4);
+ const armY=S.lvl-13;
+ $('arm').setAttribute('y2',armY-1);
+ $('needle').setAttribute('y2',clamp(armY,377,400));
+ $('piston').setAttribute('y',452+S.pulse*28);
+ $('needleR').setAttribute('transform',`rotate(${-135+clamp(S.rpm,0,7000)/7000*270} 765 470)`);
+
+ // Particules d'air : la vitesse suit la section du conduit (continuité)
+ P.forEach(p=>{p.x+=(55+430*a*(50/hw(p.x)))*dt;if(p.x>838){p.x=62;p.o=Math.random()*1.7-.85}
+  p.e.setAttribute('cx',p.x);p.e.setAttribute('cy',200+p.o*hw(p.x)*.9);p.e.setAttribute('opacity',(.25+.6*clamp(a*1.4,0,1)).toFixed(2))});
+
+ // Gouttes d'essence
+ const rt={i:220*f.i,p:110*f.p,m:150*f.m,s:220*f.s,u:260*S.pulse};
+ EM.forEach(m=>{let n=rt[m.k]*dt;while(n>0){if(Math.random()<Math.min(n,1)){const q=D.find(z=>!z.on);if(q){q.on=true;q.x=m.x+(Math.random()-.5)*4;q.y=m.y;q.l=q.m=.8+Math.random()*.7;q.e.setAttribute('fill',m.c)}}n--}});
+ D.forEach(q=>{if(!q.on)return;q.l-=dt;q.x+=(30+300*a*(50/hw(q.x)))*dt;q.y+=((200+(q.x%9-4)*3)-q.y)*(1-Math.exp(-dt*2.4));
+  if(q.l<=0||q.x>842){q.on=false;q.e.setAttribute('opacity',0);return}
+  q.e.setAttribute('cx',q.x);q.e.setAttribute('cy',q.y);q.e.setAttribute('opacity',(q.l/q.m*.9).toFixed(2))});
+
+ // Lecture
+ let lab='correct',cls='good';
+ if(r<.72){lab='très pauvre';cls='bad'}else if(r<.9){lab='pauvre';cls='warn'}else if(r>1.4){lab='très riche';cls='bad'}else if(r>1.12){lab='riche';cls='warn'}
+ const dom=[['ralenti',f.i],['progression',f.p],['principal',f.m]].sort((x,y)=>y[1]-x[1])[0][0]+(st>.2?' + starter':'');
+ $('rpm').textContent=Math.round(S.rpm/10)*10+' tr/min';
+ $('afr').textContent=(14.7/r).toFixed(1).replace('.',',')+' : 1';
+ $('circuit').textContent=S.stalled?'—':dom;
+ $('airQ').textContent=Math.round(a*100)+' %';
+ $('vac').textContent='−'+Vk.toFixed(1).replace('.',',')+' kPa';
+ $('man').textContent='−'+Math.round(Mk)+' kPa';
+ $('mark').style.left=clamp(r/2*100,1,98)+'%';
+ $('mixT').innerHTML=`Mélange <span class="${cls}">${lab}</span> (${r.toFixed(2).replace('.',',')} × la référence)`;
+
+ let stage,ex;
+ if(S.stalled){stage='Moteur calé';ex='Le mélange est hors des limites d\'inflammabilité : trop pauvre ou trop riche pour brûler. Corrige la vis de richesse ou ouvre un peu les gaz.'}
+ else if(S.pulse>.12){stage='Reprise';ex='Le papillon s\'est ouvert d\'un coup. L\'air arrive immédiatement, l\'essence suit avec retard : sans pompe de reprise, le mélange s\'appauvrit et le moteur hésite. Le jet violet comble ce creux.'}
+ else if(st>.5){stage='Démarrage à froid';ex='Le volet starter ferme le passage d\'air. La dépression en aval augmente, aspire davantage d\'essence et donne le mélange riche dont un moteur froid a besoin.'}
+ else if(dom.startsWith('ralenti')){stage='Ralenti';ex='Le papillon est presque fermé : l\'air passe lentement au venturi (peu de dépression), mais la forte dépression sous le papillon aspire l\'essence par le circuit de ralenti.'}
+ else if(dom.startsWith('progression')){stage='Progression';ex='Le papillon découvre les trous de progression, qui prennent le relais du ralenti avant que la dépression au venturi ne suffise à alimenter le circuit principal.'}
+ else{stage='Circuit principal';ex='Le débit d\'air est assez fort : la vitesse dans le venturi fait chuter la pression, ce qui aspire l\'essence par le gicleur principal (effet Venturi).'}
+ if(!S.stalled&&idl>.75&&th<.1)ex+=' La vis de ralenti est très ouverte : le régime au repos est élevé.';
+ if(!S.stalled&&mix<.15&&dom.startsWith('ralenti'))ex+=' Vis de richesse presque fermée : le ralenti devient pauvre.';
+ if(!S.stalled&&mix>.85&&dom.startsWith('ralenti'))ex+=' Vis de richesse très ouverte : le ralenti devient riche.';
+ $('stage').textContent=stage;$('explain').textContent=ex;
+}
+
+// Scénarios
+const setAll=o=>{for(const k in o)$(k).value=o[k];S.prevTh=+$('throttle').value/100;S.pulse=0};
+const tween=(id,to,ms)=>{const e=$(id),f=+e.value,t0=performance.now();(function s(n){const k=clamp((n-t0)/ms,0,1);e.value=f+(to-f)*k;if(k<1)requestAnimationFrame(s)})(t0)};
+document.querySelectorAll('[data-s]').forEach(b=>b.addEventListener('click',()=>{
+ clearTimeout(T.a);clearTimeout(T.b);const s=b.dataset.s;
+ if(s==='base')setAll(DEF);
+ if(s==='cold')setAll({...DEF,starter:85,throttle:12});
+ if(s==='full')tween('throttle',100,700);
+ if(s==='reprise'){setAll(DEF);T.a=setTimeout(()=>tween('throttle',85,140),700);T.b=setTimeout(()=>tween('throttle',8,900),3200)}
+}));
+
+let last=performance.now();
+(function loop(n){step(Math.min(.05,(n-last)/1000));last=n;requestAnimationFrame(loop)})(last);
+})();
+</script>
+</body>
+</html>
