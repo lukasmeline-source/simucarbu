@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Atelier Moteur · Sandbox</title>
+<style>
+:root{--bg:#0b1d2e;--pan:#10293f;--ln:#3f7aa6;--tx:#dce9f5;--mu:#8fa9c0;--or:#ff8a3d;--cy:#5fd0ff;--ok:#5fe0a0;--bad:#ff5c5c}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:13px/1.4 'Segoe UI',system-ui,sans-serif;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+.app{max-width:1380px;margin:0 auto;padding:14px 12px 28px}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:10px;margin-bottom:10px}
+h1{margin:0;font:800 30px/1 'Bahnschrift','Barlow Condensed','Arial Narrow',Impact,sans-serif;letter-spacing:.06em;text-transform:uppercase}h1 i{font-style:normal;color:var(--or)}
+.sub{color:var(--mu);font-size:12px}
+select,button{font:inherit;border-radius:6px}
+select{background:var(--pan);color:var(--tx);border:1px solid var(--ln);padding:6px 9px}
+.btn{background:transparent;color:var(--tx);border:1px solid var(--ln);padding:6px 12px;cursor:pointer}.btn:hover{border-color:var(--cy)}
+.go{background:var(--or);color:#1a0d02;border:0;font-weight:800;padding:9px 18px;cursor:pointer;letter-spacing:.06em;text-transform:uppercase}.go:disabled{opacity:.4;cursor:not-allowed}
+:focus-visible{outline:2px solid var(--cy);outline-offset:2px}
+.grid{display:grid;grid-template-columns:270px minmax(0,1fr);gap:12px;align-items:start}
+.box{background:var(--pan);border:1px solid #1e4666;border-radius:8px;padding:10px}
+#shelf{max-height:760px;overflow:auto;padding:0 8px 8px}
+#shelf h3{position:sticky;top:0;background:var(--pan);margin:0;padding:10px 0 5px;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--cy);z-index:2}
+.it{display:flex;gap:8px;align-items:center;background:#0b1d2e;border:1px solid #1e4666;border-radius:6px;padding:4px 6px;margin-bottom:5px;cursor:grab;user-select:none}
+.it:hover{border-color:var(--cy)}.it.on{border-color:var(--or);background:#2a2216}
+.it svg{flex:none;height:46px;background:#12304a;border-radius:4px}.wsel{background:#0b1d2e;color:var(--tx);border:1px solid var(--ln);border-radius:4px;padding:1px 3px;font-size:11px}.it b{display:block;font-size:12px}.it em{font-style:normal;color:var(--or);font-size:11px}.it small{display:block;color:var(--mu);font-size:10.5px;line-height:1.25}
+.kp{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:8px}
+.kp div{background:var(--pan);border:1px solid #1e4666;border-radius:6px;padding:5px 9px}.kp span{display:block;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mu)}.kp b{font:700 18px 'Bahnschrift','Arial Narrow',sans-serif;font-variant-numeric:tabular-nums}
+.bud{height:5px;background:#0b1d2e;border-radius:9px;margin-top:3px;overflow:hidden}.bud i{display:block;height:100%}
+svg{display:block}
+#cv{width:100%;height:auto;overflow:visible;touch-action:none;background:radial-gradient(circle at 40% 40%,#12304a,#0b1d2e);border:1px solid #1e4666;border-radius:8px}
+svg text{font-family:inherit;fill:var(--mu);font-size:11px}
+.cav{fill:#0b1d2e}.cell{cursor:grab}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0}.bar label{flex:1;min-width:220px;font-size:12px;color:var(--mu)}
+input[type=range]{width:100%;accent-color:var(--or)}
+#live{font:700 14px 'Bahnschrift','Arial Narrow',sans-serif;font-variant-numeric:tabular-nums;min-width:240px}
+#chk{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:3px 14px;font-size:12px}
+.g{color:var(--ok)}.b{color:var(--bad)}.m{color:var(--mu)}
+.rw{display:flex;justify-content:space-between;gap:10px;padding:7px 4px;border-bottom:1px solid #1e4666;animation:in .4s}
+.fin{text-align:center;padding:14px}.fin .s{font-size:38px;color:var(--or);letter-spacing:6px}.fin .big{font:800 24px 'Bahnschrift','Arial Narrow',sans-serif}
+@keyframes in{from{opacity:0;transform:translateY(6px)}}
+@keyframes fl{to{stroke-dashoffset:-24}}.flow{animation:fl 1s linear infinite}
+@keyframes sh{25%{transform:translate(-4px,2px)}75%{transform:translate(4px,-2px)}}
+.boom{animation:sh .15s 8}
+@media(max-width:900px){.grid{grid-template-columns:1fr}#shelf{max-height:300px}.kp{grid-template-columns:repeat(3,1fr)}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style></head><body><div class="app">
+<header><div><h1>Atelier <i>Moteur</i> · Sandbox</h1><div class="sub">Glisse les pièces sur l'établi et construis ton moteur. Empile : admission → (cames) → culasse → cylindre → vilebrequin. Alimentation à gauche, échappement à droite. Vilebrequin, culasse, cames, admission et gros turbos s'étalent sur plusieurs cases. Trace aussi tes circuits d'eau, d'huile et d'air avec les tuyaux : clique un tuyau dans la caisse, puis glisse sur l'établi (Maj = effacer).</div></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><select id="mis" aria-label="Mission"></select><button class="btn" id="un">↶ Annuler</button><button class="btn" id="sv">Sauver</button><button class="btn" id="ld">Charger</button><button class="btn" id="st">Moteur de départ</button><button class="btn" id="cl">Tout vider</button></div></header>
+<div class="grid"><aside class="box" id="shelf" aria-label="Caisse à pièces"></aside>
+<main><div class="kp"><div><span>Puissance</span><b id="khp">–</b></div><div><span>Couple</span><b id="knm">–</b></div><div><span>Fiabilité</span><b id="krel">–</b></div><div><span>Conso mixte</span><b id="kcs">–</b></div><div><span>Eau / huile</span><b id="kt">–</b></div><div><span>Poids moteur</span><b id="kw">–</b></div><div><span>Budget</span><b id="kc">–</b><div class="bud"><i id="kb"></i></div></div></div>
+<svg id="cv" viewBox="0 0 1040 640" role="application" aria-label="Établi de montage du moteur">
+<defs>
+<linearGradient id="gS" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#f1f5f9"/><stop offset=".5" stop-color="#a6b8ca"/><stop offset="1" stop-color="#6c8094"/></linearGradient>
+<linearGradient id="gA" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#e4edf5"/><stop offset=".55" stop-color="#a9bccd"/><stop offset="1" stop-color="#7a90a4"/></linearGradient>
+<linearGradient id="gB" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#ffe3a0"/><stop offset=".55" stop-color="#d49a32"/><stop offset="1" stop-color="#8a5a12"/></linearGradient>
+<linearGradient id="gO" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#ffbc78"/><stop offset=".55" stop-color="#e0763a"/><stop offset="1" stop-color="#8f3f14"/></linearGradient>
+<linearGradient id="gD" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#5f7082"/><stop offset=".5" stop-color="#2f3c49"/><stop offset="1" stop-color="#1b2530"/></linearGradient>
+<linearGradient id="gC" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#c4f1ff"/><stop offset=".55" stop-color="#4aa8d8"/><stop offset="1" stop-color="#22607f"/></linearGradient>
+<pattern id="hb" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#17405f"/><line y2="8" stroke="#3f7aa6" stroke-width="1.4"/></pattern>
+<pattern id="gr" width="80" height="80" patternUnits="userSpaceOnUse"><path d="M80 0H0V80" fill="none" stroke="#1d4a6b" stroke-width="1"/></pattern></defs>
+<rect width="1040" height="640" fill="url(#gr)"/><text id="hint" x="520" y="320" text-anchor="middle" style="font-size:16px">Établi vide — glisse une pièce ici (ou clique « Moteur de départ »)</text>
+<g id="cells"></g><g id="ov" style="pointer-events:none"></g><g id="fx" style="pointer-events:none"></g><g id="ly" style="pointer-events:none"></g></svg>
+<div class="bar"><label>Régime moteur<input id="thr" type="range" min="800" max="9000" value="1200"></label><label id="wgl" hidden>Pression turbo (wastegate) : <b id="barv"></b><input id="bar" type="range" min=".2" max="1.6" step=".05" value=".8"></label><span id="live"></span><button class="go" id="run">Lancer les tests</button></div>
+<div class="box" id="chk" aria-live="polite"></div>
+<div class="box" style="margin-top:10px"><svg id="ch" viewBox="0 0 560 210" width="100%" role="img" aria-label="Courbe de puissance"></svg></div>
+<div id="res" class="box" hidden style="margin-top:10px"></div></main></div></div>
+<script>
+const $=s=>document.querySelector(s),S=80,COLS=13,ROWS=8,K='stroke="#06121d" stroke-width="2" stroke-linejoin="round"';
+const L={
+cr:[{n:'Vilebrequin fonte',c:600,w:9,pk:0,rb:0,col:'#aab9c9',d:'Standard, économique'},{n:'Vilebrequin forgé',c:1400,w:10,pk:0,rb:6,col:'#7fb1e8',d:'Très résistant (+fiabilité)'},{n:'Vilebrequin allégé',c:1900,w:7,pk:300,rb:-2,col:'#e6b85c',d:'Monte plus haut en régime'}],
+cy:[{n:'Cylindre 0,5 L',c:700,w:11,d:'Alésage standard'},{n:'Cylindre 0,6 L',c:1100,w:12,d:'Grand alésage : +20 % de cylindrée'},{n:'Piston forgé 0,5 L',c:1300,w:11,d:'Supporte mieux la pression'}],
+hv:[{n:'Culasse 2 soupapes',c:500,w:6,v:2,d:'Simple, du couple en bas'},{n:'Culasse 3 soupapes',c:900,w:7,v:3,d:'Meilleur remplissage'},{n:'Culasse 4 soupapes',c:1300,w:8,v:4,d:'Respire à haut régime'}],
+cm:[{n:'Cames route',c:150,w:3,m:1,pk:0,low:1,rp:0,d:'Souple et fiable'},{n:'Cames sport',c:400,w:3,m:1.08,pk:700,low:.9,rp:5,d:'Plus de pointe'},{n:'Cames course',c:800,w:3,m:1.17,pk:1400,low:.7,rp:14,d:'Creux en bas, fragile'}],
+it:[{n:'Admission plenum',c:200,w:3,m:1,pk:0,low:1,d:'Équilibrée'},{n:'Admission longue',c:350,w:4,m:1,pk:-600,low:1.1,d:'Du couple à bas régime'},{n:'Admission courte',c:350,w:3,m:1.03,pk:500,low:.93,d:'Plus de souffle en haut'}],
+fu:[{n:'Carburateur simple',c:300,w:4,m:.95,cs:1.15,d:'Rustique, gourmand'},{n:'Carburateur double corps',c:700,w:5,m:1,cs:1.12,d:'Meilleur débit'},{n:'Injection indirecte',c:1400,w:4,m:1.03,cs:1,d:'Dosage précis'},{n:'Injection directe',c:2600,w:5,m:1.08,cs:.9,d:'Puissante et sobre'}],
+ai:[{n:'Filtre à air',c:100,w:2,d:'Protège le moteur'},{n:'Compresseur mécanique',c:2200,w:10,d:'+28 %, sans temps de réponse'},{n:'Compresseur turbo S',c:1100,w:5,d:'Côté froid : à associer à une turbine'},{n:'Compresseur turbo L',c:1700,w:8,d:'Gros côté froid'}],
+hx:[{n:'Collecteur fonte',c:200,w:5,m:1,pk:0,low:1,d:'Origine, bridé'},{n:'Collecteur n-en-2',c:600,w:4,m:1.04,pk:300,low:1,d:'Bon compromis'},{n:'Collecteur n-en-1',c:1000,w:4,m:1.08,pk:700,low:.92,d:'Haut régime'}],
+tb:[{n:'Turbine S',c:1400,w:8,d:'Petit turbo : vif, limité'},{n:'Turbine L',c:2100,w:12,d:'Gros turbo : puissant, lent'},{n:'Silencieux',c:300,w:6,d:'Plus discret (−2 % de puissance)'}],
+rd:[{n:'Radiateur S',c:700,w:6,cap:150,d:'Format 2×1 · évacue ~150 de chaleur'},{n:'Radiateur L + ventilateur',c:1400,w:10,cap:300,d:'Format 2×2 · gros moteurs et turbo'}],
+pu:[{n:'Pompe à eau',c:300,w:3,f:1,d:'Fait circuler le liquide'},{n:'Pompe à eau haut débit',c:700,w:4,f:1.25,d:'+25 % de refroidissement'}],
+oi:[{n:'Carter + pompe à huile',c:500,w:7,f:1,d:'Lubrification standard'},{n:'Carter sec racing',c:1500,w:8,f:1.3,d:'Huile mieux gérée à haut régime'}],
+oc:[{n:'Refroidisseur d\'huile',c:600,w:3,d:'Garde l\'huile fraîche sous forte charge'}],
+ic:[{n:'Intercooler S',c:1100,w:4,f:.6,d:'Format 2×1 · refroidit l\'air turbo (+4 %)'},{n:'Intercooler L',c:1900,w:7,f:1,d:'Format 2×2 · +7 % de puissance suralimentée'}],
+wg:[{n:'Wastegate réglable',c:500,w:2,d:'Débloque le curseur de pression turbo'}],
+pp:[{n:'Tuyau d\'eau',c:30,w:1,d:'Clique, puis trace sur l\'établi'},{n:'Tuyau d\'huile',c:40,w:1,d:'Clique, puis trace sur l\'établi'},{n:'Conduit d\'air',c:50,w:1,d:'Clique, puis trace sur l\'établi'}]};
+const CN={cr:'Bas moteur',cy:'Cylindres & pistons',hv:'Culasses & soupapes',cm:'Arbres à cames',it:'Admission',fu:'Carburation / injection',ai:'Air & suralimentation',hx:'Collecteurs d\'échappement',tb:'Turbines & silencieux',rd:'Radiateurs',pu:'Pompes à eau',oi:'Huile · carter & pompe',oc:'Refroidisseur d\'huile',ic:'Intercooler',wg:'Wastegate',pp:'Tuyaux (à tracer)'};
+const NOC={m:.95,pk:-300,low:1,rp:0},VM=[1,1.07,1.15],VPK=[5000,5800,6500],at=(a,x)=>a[Math.max(0,Math.min(a.length-1,Math.round(x)))];
+function eng(p){const v=at(VM,p.v-2),cm=p.cam<0?NOC:at(L.cm,p.cam),it=at(L.it,p.it),cr=at(L.cr,p.cr),fu=at(L.fu,p.fu),hx=at(L.hx,p.hx),D=p.D;
+ const pk=at(VPK,p.v-2)+cm.pk+hx.pk+it.pk+cr.pk,rl=pk+1300,base=D*80*v*cm.m*it.m*fu.m*hx.m*p.pen,low=cm.low*hx.low*it.low;
+ const nm=r=>{if(r>rl)return 0;const s=.5+.5*Math.exp(-(((r-pk*.82)/(pk*.5))**2)),lo=1-(1-low)*Math.max(0,Math.min(1,(4000-r)/3000));
+  const bf=p.B<=1?1:p.sp?1+(p.B-1)/(1+Math.exp(-(r-p.sp)/350)):1+(p.B-1)*(1-.05*r/6000);return base*s*lo*bf};
+ const curve=[];let hp=0,hr=0,nmx=0;for(let r=1000;r<=rl;r+=250){const t=nm(r),q=t*r/7022;curve.push([r,t,q]);if(q>hp){hp=q;hr=r}nmx=Math.max(nmx,t)}
+ const bm=p.B>1?1.1:1,cc=p.cc==null?1e9:p.cc,co=p.co==null?1e9:p.co,Q=hp*.9*bm,tw=75+20*Q/cc,to=85+30*Q/co,dr=Math.max(.5,tw>105?1-(tw-105)*.02:1);
+ hp*=dr;nmx*=dr;curve.forEach(q=>{q[1]*=dr;q[2]*=dr});const nmd=r=>nm(r)*dr;
+ const pm=nmd(pk*.6)*pk*.6/7022,hpl=hp/D;
+ let rel=Math.max(5,Math.min(100,100-Math.max(0,hpl-60)*.55-p.rp-cm.rp-(p.v>=3.5?2:0)-(p.fu==0&&p.B>1.2?10:0)+cr.rb+8*p.fp-3*p.bb-Math.max(0,tw-100)*1.5-Math.max(0,to-125)*.8));
+ if(p.oil===0)rel=Math.min(rel,8);
+ const bs=[335,315,285,255][Math.round(p.fu)],fl=r=>nmd(r)*r/7022*.7355*bs/745*bm+.4*D,twf=r=>75+20*(nm(r)*r/7022*.9*bm)/cc,tof=r=>85+30*(nm(r)*r/7022*.9*bm)/co;
+ return{nm:nmd,curve,hp,hr,nmx,pm,rel,w:p.w,rl,D,cost:p.cost,lg:p.lg,fu,bs,fl,tw,to,dr,twf,tof,oil:p.oil}}
+function full(p,dt=.02){const e=eng(p),m=700+e.w,P=(.5*e.hp+.5*e.pm)*735.5*.85;let v=0,t=0;
+ while(v<27.78&&t<30){const a=Math.min(P*(1-.4*Math.exp(-t/p.lg))/(m*Math.max(v,2)),8.5);v+=a*dt;t+=dt}
+ const Pw=e.hp*735.5*.88;let vm=30;while(vm<120&&.5*1.2*.8*vm**3+.012*m*9.81*vm<Pw)vm+=.2;
+ const h=e.rel>=80?24:Math.max(1,Math.round(24*(e.rel/80)**2));
+ return Object.assign(e,{t:t+1.2,vm:vm*3.6,cs:(e.bs/285)*(5.6+.55*e.D)*(p.B>1?1.06:1)*(1+(p.w-180)/1800),cf:e.fl(e.hr)/(vm*3.6)*100,h,cause:p.oil===0?'grippage : plus d\'huile':e.tw>112?'surchauffe : joint de culasse':p.B>1.6?'joint de culasse':p.cam>1?'soupape tordue':p.B>1?'piston percé':'bielle coulée'})}
+const MIS=[{n:'Polyvalent · budget 20 000 €',b:20000,sc:r=>r.hp*2.2+Math.max(0,12-r.t)*55+r.rel*4+Math.max(0,12-r.cs)*20+(r.vm-150)*1.5},{n:'Sprint 0-100 · budget 28 000 €',b:28000,sc:r=>Math.max(0,12-r.t)*180+r.hp*.8+r.rel},{n:'Endurance 24 h · budget 14 000 €',b:14000,sc:r=>r.h*25+r.rel*6+Math.max(0,14-r.cs)*30+r.hp*.3}];
+MIS.forEach((m,i)=>$('#mis').append(new Option(m.n,i)));
+const BO={B:[1,1.28,1.45,1.8],sp:[0,0,2300,3800],lg:[.1,.1,.8,1.6],rp:[0,3,8,14],c:[0,2200,2500,3800],w:[0,10,13,20]};
+function mk(s){const{n,cy,cr,hv,cm,it,fu,hx,bo}=s;return{n,D:n*[.5,.6,.5][cy],v:hv+2,cam:cm-1,it,cr,fp:cy==2?1:0,bb:cy==1?1:0,fu,hx,B:BO.B[bo],sp:BO.sp[bo],lg:BO.lg[bo],rp:BO.rp[bo],pen:1,
+ cost:n*(L.cr[cr].c+L.cy[cy].c+L.hv[hv].c+(cm?L.cm[cm-1].c:0)+L.it[it].c)+L.fu[fu].c+L.hx[hx].c+BO.c[bo]+1200,w:n*(L.cr[cr].w+L.cy[cy].w+L.hv[hv].w+(cm?L.cm[cm-1].w:0)+L.it[it].w)+L.fu[fu].w+L.hx[hx].w+BO.w[bo]+20}}
+const best={};function bestOf(i){if(best[i])return best[i];let b={s:-1};const m=MIS[i];
+ for(let n=2;n<=6;n++)for(let cy=0;cy<3;cy++)for(let cr=0;cr<3;cr++)for(let hv=0;hv<3;hv++)for(let cm=0;cm<4;cm++)for(let it=0;it<3;it++)for(let fu=0;fu<4;fu++)for(let hx=0;hx<3;hx++)for(let bo=0;bo<4;bo++){const s={n,cy,cr,hv,cm,it,fu,hx,bo},p=mk(s);if(p.cost>m.b)continue;const q=Math.max(0,m.sc(full(p,.05)));if(q>b.s)b={s:q,c:s}}
+ return best[i]=b}
+const lab=s=>[s.n+' cyl.',L.cy[s.cy].n,L.cr[s.cr].n,L.hv[s.hv].n,s.cm?L.cm[s.cm-1].n:'sans cames',L.it[s.it].n,L.fu[s.fu].n,L.hx[s.hx].n,['atmosphérique','compresseur mécanique','turbo S','turbo L'][s.bo]].join(', ').toLowerCase();
+// dessin des pièces (cellule 80x80)
+const pp=(d,w,c)=>`<path d="${d}" fill="none" stroke="#06121d" stroke-width="${w+4}" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>`;
+const wheel=(x,y,r,k,c)=>`<g class="rot" data-c="${x} ${y}" data-k="${k}"><circle cx="${x}" cy="${y}" r="${r}" fill="${c}" ${K}/><path d="M${x-r+3} ${y}H${x+r-3}M${x} ${y-r+3}V${y+r-3}M${x-r*.7} ${y-r*.7}L${x+r*.7} ${y+r*.7}M${x-r*.7} ${y+r*.7}L${x+r*.7} ${y-r*.7}" stroke="#06121d" stroke-width="2.5"/></g><circle cx="${x}" cy="${y}" r="3" fill="#06121d"/>`;
+function draw(cat,i){const o=L[cat][i];
+ if(cat=='rd'||cat=='ic'){const big=i==1,h=big?160:80,ic=cat=='ic',c1=ic?'#8fd9b6':'#4aa8d8';return `<rect x="10" y="10" width="140" height="${h-20}" rx="6" fill="url(#gA)" ${K}/>`+Array.from({length:14},(_,k)=>`<path d="M${22+k*9} 14V${h-14}" stroke="${ic?'#5aa98a':'#5d7a93'}" stroke-width="3"/>`).join('')+`<rect x="2" y="16" width="12" height="${h-32}" rx="4" fill="${c1}" ${K}/><rect x="146" y="16" width="12" height="${h-32}" rx="4" fill="${c1}" ${K}/>`+(big&&!ic?wheel(80,80,44,3,'#3a4a5a'):'')}
+ if(cat=='pu')return `<circle cx="40" cy="40" r="28" fill="url(#gC)" ${K}/><circle cx="40" cy="40" r="22" class="cav"/>${wheel(40,40,17,3,i?'#ffb56b':'#9bd9f2')}<rect x="36" y="2" width="8" height="12" fill="url(#gS)" ${K}/>`;
+ if(cat=='oi')return `<path d="M8 18H72L62 66H18Z" fill="url(#gS)" ${K}/><path d="M16 24H64L56 58H24Z" class="cav"/><path d="M20 46H60L56 58H24Z" fill="#c8872a" opacity=".85"/>${wheel(40,36,9,2,'#e0a030')}`+(i?`<rect x="60" y="22" width="16" height="40" rx="6" fill="url(#gD)" ${K}/>`:'');
+ if(cat=='oc')return `<rect x="10" y="18" width="60" height="44" rx="5" fill="url(#gA)" ${K}/>`+[0,1,2,3,4,5].map(k=>`<path d="M${20+k*8} 22V58" stroke="#b9822a" stroke-width="3"/>`).join('')+`<rect x="4" y="26" width="10" height="28" rx="3" fill="#d9962b" ${K}/><rect x="66" y="26" width="10" height="28" rx="3" fill="#d9962b" ${K}/>`;
+ if(cat=='wg')return `<path d="M20 60Q20 24 40 24Q60 24 60 60Z" fill="url(#gB)" ${K}/><rect x="36" y="10" width="8" height="16" fill="url(#gS)" ${K}/><rect x="14" y="58" width="52" height="10" rx="3" fill="url(#gD)" ${K}/>`;
+ if(cat=='cr')return `<rect y="26" width="80" height="54" fill="url(#hb)"/><path d="M0 27H80" stroke="#7fb4dc" stroke-width="2"/><circle cx="40" cy="54" r="28" class="cav" stroke="#7fb4dc"/><rect y="50" width="80" height="8" fill="url(#gS)" ${K}/><g class="rot" data-c="40 54" data-k="1" data-p="1"><path d="M16 54A24 24 0 0 0 64 54Z" fill="${o.col}" ${K}/><circle cx="40" cy="54" r="13" fill="${o.col}" ${K}/><circle cx="40" cy="36" r="6" fill="url(#gB)" ${K}/></g><circle cx="40" cy="54" r="3" fill="#06121d"/>`;
+ if(cat=='cy'){const w=i==1?56:44,x=(80-w)/2,pc=i==2?'#e6b85c':'url(#gS)';return `<rect width="80" height="80" fill="url(#hb)"/><path d="M1 0V80M79 0V80" stroke="#7fb4dc" stroke-width="3"/><rect class="cav" x="${x}" width="${w}" height="80"/><rect class="gas" x="${x}" y="0" width="${w}" height="0" fill="#ffd27a" opacity="0"/><g class="pis"><rect x="${x+2}" width="${w-4}" height="28" rx="3" fill="${pc}" ${K}/><path d="M${x+2} 7H${x+w-2}M${x+2} 12H${x+w-2}" stroke="#46586b" stroke-width="2"/><rect x="36" y="28" width="8" height="26" fill="url(#gS)" ${K}/><circle cx="40" cy="20" r="4" fill="#06121d"/></g>`}
+ if(cat=='hv'){const vi=o.v==2?[30]:[24,36],ve=o.v==4?[50,58]:[54],vv=(xs,c,k)=>xs.map(x=>`<g class="${k}"><rect x="${x-1.5}" y="12" width="3" height="52" fill="${c}" ${K}/><path d="M${x-6} 64H${x+6}L${x+4} 70H${x-4}Z" fill="${c}" ${K}/><path d="M${x-5} 22l10 4-10 4 10 4-10 4" fill="none" stroke="#9aa" stroke-width="1.5"/></g>`).join('');
+  return `<rect y="10" width="80" height="70" fill="url(#gA)"/><path d="M0 10H80M0 80H80" stroke="#06121d" stroke-width="2"/><rect class="cav" x="22" y="10" width="16" height="54"/><path class="cav" d="M44 64V38Q44 32 52 32H80V44H64V64Z"/><rect class="cav" x="20" y="64" width="44" height="16"/>${vv(vi,'#6cc4f0','vi')}${vv(ve,'#ff8a4c','ve')}<path d="M41 24V66" stroke="#9aa" stroke-width="3"/><rect x="39" width="4" height="26" fill="#f1f4f8" ${K}/><rect x="36" y="20" width="10" height="7" fill="url(#gS)" ${K}/>`}
+ if(cat=='cm'){const r=5+3*i;return `<rect x="0" y="16" width="22" height="52" fill="url(#gD)" ${K}/><rect x="38" y="16" width="42" height="52" fill="url(#gD)" ${K}/><rect class="cav" x="22" width="16" height="80"/><rect y="38" width="80" height="8" fill="url(#gS)" ${K}/>`+[30,58].map(x=>`<g class="rot" data-c="${x} 42" data-k=".5" data-p="1"><ellipse cx="${x}" cy="42" rx="${r+4}" ry="${r}" fill="${['#aab9c9','#ff8a3d','#ff5c5c'][i]}" ${K}/><circle cx="${x}" cy="42" r="3" fill="#06121d"/></g>`).join('')}
+ if(cat=='it'){const t=[[4,34],[8,28],[6,32]][i],run=['M30 28V80','M30 28C30 42 56 42 56 54S30 66 30 80','M26 32H34L36 80H24Z'][i];return `<rect y="${t[0]}" width="80" height="${t[1]-t[0]}" fill="url(#gA)"/><path d="M0 ${t[0]}H80M0 ${t[1]}H80" stroke="#06121d" stroke-width="2"/>`+(i==2?`<path d="${run}" fill="url(#gA)" ${K}/>`:pp(run,i?10:14,'#b9c9d8'))}
+ if(cat=='fu'){const st='<rect y="6" width="80" height="26" fill="url(#gA)"/><path d="M0 6H80M0 32H80" stroke="#06121d" stroke-width="2"/>';
+  if(i<2)return st+`<rect x="10" width="60" height="44" rx="5" fill="url(#gB)" ${K}/>${i?'<rect class="cav" x="10" y="6" width="60" height="11"/><rect class="cav" x="10" y="21" width="60" height="11"/>':'<rect class="cav" x="10" y="10" width="60" height="19"/>'}<rect x="28" y="44" width="24" height="22" rx="4" fill="url(#gB)" ${K}/><rect x="31" y="54" width="18" height="9" fill="#f0b43c"/><rect x="39" y="30" width="2" height="24" fill="#f0b43c"/><circle cx="20" cy="38" r="3" fill="#06121d"/>`;
+  const c=i==2?'#ff8a3d':'#ff5c5c';return st+`<rect x="14" y="2" width="52" height="34" rx="10" fill="url(#gA)" ${K}/><rect class="cav" x="14" y="10" width="52" height="18"/><path d="M46 10L40 28" stroke="#fff" stroke-width="3"/><rect x="20" y="36" width="6" height="9" fill="${c}" ${K}/><rect x="54" y="36" width="6" height="9" fill="${c}" ${K}/><rect x="12" y="44" width="56" height="9" rx="3" fill="${c}" ${K}/>`+(i==3?`<circle cx="40" cy="67" r="10" fill="${c}" ${K}/><path d="M40 53V57" stroke="${c}" stroke-width="4"/>`:'')}
+  if(cat=='ai'){if(i==0)return `<rect x="4" width="140" height="46" rx="8" fill="#e8d9b0" ${K}/><path d="${[18,32,46,60,74,88,102,116,130].map(x=>'M'+x+' 6V40').join('')}" stroke="#a88e4e" stroke-width="2"/><rect x="144" y="8" width="16" height="20" fill="url(#gA)" ${K}/>`;
+  if(i==1)return `<rect x="6" width="148" height="62" rx="8" fill="url(#gC)" ${K}/><rect class="cav" x="14" y="8" width="132" height="46" rx="10"/>${wheel(50,31,12,3,'#9bd9f2')}${wheel(80,31,12,-3,'#9bd9f2')}${wheel(110,31,12,3,'#9bd9f2')}<circle cx="80" cy="70" r="8" fill="url(#gS)" ${K}/><rect x="154" y="8" width="6" height="20" fill="url(#gA)"/>`;
+  if(i==2)return pp('M60 18H80',16,'#a9bccd')+`<path d="M0 26L16 30V42L0 46Z" fill="url(#gA)" ${K}/><circle cx="40" cy="38" r="28" fill="url(#gC)" ${K}/><circle cx="40" cy="38" r="22" class="cav"/>${wheel(40,38,18,5,'#9bd9f2')}`;
+  return pp('M120 52C124 18 134 18 160 18',16,'#a9bccd')+`<path d="M0 66L30 78V98L0 110Z" fill="url(#gA)" ${K}/><circle cx="80" cy="88" r="52" fill="url(#gC)" ${K}/><circle cx="80" cy="88" r="46" class="cav"/>${wheel(80,88,40,4,'#9bd9f2')}`}
+ if(cat=='hx'){if(i==0)return `<path d="M0 20H70Q80 20 80 28V44Q80 52 70 52H0Z" fill="url(#gD)" ${K}/><path d="M12 24V48M26 24V48M40 24V48M54 24V48" stroke="#5f7082" stroke-width="2"/><rect class="cav" x="0" y="30" width="80" height="12"/>`+pp('M0 36H80',8,'#c9d3de');
+  const t=i==2?['M0 24C40 24 40 36 80 36','M0 36H80','M0 48C40 48 40 36 80 36','M0 60C40 60 40 36 80 36']:['M0 24C40 24 40 30 80 30','M0 36C40 36 40 30 80 30','M0 48C40 48 40 42 80 42','M0 60C40 60 40 42 80 42'];return t.map(d=>pp(d,5,'#d8b79a')).join('')}
+ if(cat=='tb'){if(i==2)return `<rect x="3" y="18" width="154" height="36" rx="18" fill="url(#gS)" ${K}/><path d="M40 20V52M80 20V52M120 20V52" stroke="#6c8094" stroke-width="2"/><rect y="31" width="6" height="10" fill="url(#gS)" ${K}/><rect x="154" y="31" width="6" height="10" fill="url(#gS)" ${K}/>`;
+  if(i==0)return pp('M0 36H22',12,'#c9d3de')+pp('M40 36H80',12,'#c9d3de')+`<circle cx="40" cy="40" r="28" fill="url(#gO)" ${K}/><circle cx="40" cy="40" r="22" class="cav"/>${wheel(40,40,18,5,'#ffb56b')}`;
+  return pp('M0 36H56',12,'#c9d3de')+pp('M110 44Q130 36 160 36',12,'#c9d3de')+`<circle cx="80" cy="88" r="58" fill="url(#gO)" ${K}/><circle cx="80" cy="88" r="52" class="cav"/>${wheel(80,88,46,4,'#ffb56b')}`}}
+// état
+let grid={},hist=[],A={ok:false,M:[]},E=null,R={},drag=null,brush=null,rpm=0,psi=0,sw=null,busy=false,puffs=[],last=0,bar=null,lastRef=0,painting=false,cX=r=>r;
+const key=(c,r)=>c+','+r,WIDE=['cr','hv','cm','it'],cnt=p=>WIDE.includes(p.cat)?p.w:1,parts=()=>Object.values(grid);
+const SZ=(cat,i,w)=>cat=='rd'||cat=='ic'?[[2,1],[2,2]][i]:cat=='ai'?[[2,1],[2,1],[1,1],[2,2]][i]:cat=='tb'?[[1,1],[2,2],[2,1]][i]:WIDE.includes(cat)?[w||1,1]:[1,1];
+const G=(c,r)=>parts().find(p=>c>=p.c&&c<p.c+p.w&&r>=p.r&&r<p.r+p.h);
+const fits=(c,r,w,h)=>c>=0&&r>=0&&c+w<=COLS&&r+h<=ROWS&&!parts().some(p=>c<p.c+p.w&&c+w>p.c&&r<p.r+p.h&&r+h>p.r);
+const add=(c,r,cat,i,w=1)=>{const[ww,hh]=SZ(cat,i,w);grid[key(c,r)]={cat,i,w:ww,h:hh,c,r}};
+const snap=()=>{hist.push(JSON.stringify(grid));if(hist.length>80)hist.shift()};
+function drawP(cat,i,w){if(cat=='pp')return pipeTile({i,c:-9,r:-9},1);if(!WIDE.includes(cat))return draw(cat,i);let s='';for(let j=0;j<w;j++)s+=`<g data-j="${j}" transform="translate(${j*80} 0)">${draw(cat,i)}</g>`;return s+(cat=='hv'?`<path d="M1 10V80M${w*80-1} 10V80" stroke="#06121d" stroke-width="2"/>`:'')}
+const FLU=[{col:'#3b8fe0'},{col:'#d9962b'},{col:'#8fd9b6'}];
+const ATT=[p=>['cy','hv','pu','rd'].includes(p.cat),p=>['cr','hv','cm','oi','oc'].includes(p.cat),p=>p.cat=='ic'||p.cat=='fu'||(p.cat=='ai'&&p.i>=1)];
+const TAG=[p=>p.cat=='pu'?'P':p.cat=='rd'?'R':'E',p=>p.cat=='oi'?'P':p.cat=='oc'?'K':p.cat=='cr'?'C':'H',p=>p.cat=='ic'?'I':p.cat=='fu'?'T':'S'];
+function pipeTile(p,th){const col=FLU[p.i].col,D4=[[1,0,'H80'],[-1,0,'H0'],[0,1,'V80'],[0,-1,'V0']],arms=[];
+ if(th)arms.push(0,1);else D4.forEach((a,k)=>{const q=G(p.c+a[0],p.r+a[1]);if(q&&((q.cat=='pp'&&q.i==p.i)||(q.cat!='pp'&&ATT[p.i](q))))arms.push(k)});
+ return arms.map(k=>pp('M40 40'+D4[k][2],12,col)).join('')+arms.map(k=>`<path class="flow" d="M40 40${D4[k][2]}" stroke="#fff" stroke-width="2" stroke-dasharray="4 8" opacity=".55" fill="none"/>`).join('')+`<circle cx="40" cy="40" r="9" fill="${col}" ${K}/>`}
+function comps(f){const pc=parts().filter(x=>x.cat=='pp'&&x.i==f),seen={},out=[],pa=(c,r)=>pc.find(x=>x.c==c&&x.r==r);
+ pc.forEach(p0=>{if(seen[key(p0.c,p0.r)])return;const st=[p0],cp={n:0,tags:new Set(),parts:[]};seen[key(p0.c,p0.r)]=1;
+  while(st.length){const x=st.pop();cp.n++;[[1,0],[-1,0],[0,1],[0,-1]].forEach(([dx,dy])=>{const q=pa(x.c+dx,x.r+dy);if(q){if(!seen[key(q.c,q.r)]){seen[key(q.c,q.r)]=1;st.push(q)}}else{const d=G(x.c+dx,x.r+dy);if(d&&d.cat!='pp'&&ATT[f](d)){cp.tags.add(TAG[f](d));if(!cp.parts.includes(d))cp.parts.push(d)}}})}
+  out.push(cp)});return out}
+function circ(f,req){let best=null;comps(f).forEach(c=>{c.sc=req.filter(t=>c.tags.has(t)).length;c.ok=c.sc==req.length;if(!best||(c.ok&&!best.ok)||(!best.ok&&c.sc>best.sc))best=c});return best}
+function analyze(){const ps=parts(),M=[],out={ok:false,M,cost:0,w:0,run:[]};
+ ps.forEach(x=>{const o=L[x.cat][x.i];out.cost+=o.c*cnt(x);out.w+=o.w*cnt(x)});
+ const cyl=ps.filter(x=>x.cat=='cy');
+ if(!ps.length){M.push(['m','Glisse des pièces sur l\'établi, ou charge le moteur de départ.']);return out}
+ if(!cyl.length){M.push(['b','✖ Il faut au moins un cylindre.']);return out}
+ const cn={};cyl.forEach(x=>cn[x.r]=(cn[x.r]||0)+1);const r=+Object.keys(cn).sort((a,b)=>cn[b]-cn[a])[0];
+ const chk=x=>{const h=G(x.c,r-1),cr=G(x.c,r+1);if(!h||h.cat!='hv')return'pas de culasse juste au-dessus';if(!cr||cr.cat!='cr')return'pas de vilebrequin juste en dessous';let k=r-2,cm=G(x.c,k);if(cm&&cm.cat=='cm')k--;else cm=null;const it=G(x.c,k);if(!it||it.cat!='it')return'pas d\'admission au-dessus de la culasse';return{h,cr,cm,it,k}};
+ const run=[];cyl.filter(x=>x.r==r).sort((a,b)=>a.c-b.c).forEach(x=>{const q=chk(x);if(typeof q=='string'){M.push(['b','✖ Cylindre col. '+(x.c+1)+' : '+q]);out.bad=(out.bad||[]).concat([[x.c,r]]);return}
+  if(!run.length||x.c==run[run.length-1].x.c+1)run.push({x,q});else M.push(['b','✖ Cylindre col. '+(x.c+1)+' séparé du bloc : ignoré'])});
+ if(cyl.some(x=>x.r!=r))M.push(['b','✖ Des cylindres sont sur une autre rangée : ignorés']);
+ if(!run.length)return out;out.run=run;
+ const c0=run[0].x.c,c1=run[run.length-1].x.c,ik=run[0].q.k,hr=r-1,fu=G(c0-1,ik),hx=G(c1+1,hr);let ok=true;
+ if(!fu||fu.cat!='fu'){M.push(['b','✖ Manque carburateur / injection à gauche de l\'admission']);ok=false}
+ if(!hx||hx.cat!='hx'||hx.r!=hr){M.push(['b','✖ Manque collecteur d\'échappement à droite des culasses']);ok=false}
+ if(!ok)return out;
+ const ai=[],ex=[];for(let c=c0-2;;){const q=G(c,ik);if(!q||q.cat!='ai'||q.r!=ik||q.c+q.w-1!=c)break;ai.push(q);c=q.c-1}
+ for(let c=c1+2;;){const q=G(c,hr);if(!q||q.cat!='tb'||q.r!=hr||q.c!=c)break;ex.push(q);c+=q.w}
+ const bl=ai.find(q=>q.i==1),cp=ai.find(q=>q.i>=2),tu=ex.find(q=>q.i<2);let B=1,sp=0,lg=.1,rp=0,pen=1,ref=0;
+ if(cp&&tu){const a=cp.i-2,b=tu.i,s=(a+b)/2;B=1.45+.35*s;sp=2300+1500*s;lg=.8+.8*s;ref=.8+.3*s;rp=8+6*s+(a!=b?4:0);if(a!=b){B*=.96;M.push(['m','⚠ Turbine et compresseur de tailles différentes : rendement réduit'])}}
+ else{if(cp){pen*=.96;M.push(['m','⚠ Compresseur turbo sans turbine : il freine l\'air (−4 %)'])}if(tu){pen*=.94;M.push(['m','⚠ Turbine sans compresseur : contre-pression (−6 %)'])}}
+ if(bl){if(B>1){B=Math.min(2.1,B*1.1);rp+=8}else{B=1.28;rp=3}}
+ if(ex.some(q=>q.i==2))pen*=.98;
+ let wg=false;if(sp>0){if(lastRef!=ref){bar=ref;lastRef=ref}if(ps.some(x=>x.cat=='wg')){wg=true;B=1+(B-1)*bar/ref;rp+=Math.max(0,bar-ref)*30;M.push(['g','✔ Wastegate réglable : '+bar.toFixed(2)+' bar'])}else{B*=1.08;rp+=8;M.push(['m','⚠ Pas de wastegate : pression non contrôlée (+8 % de souffle, moteur plus sollicité)'])}}
+ const cw=circ(0,['E','P','R']),cl=circ(1,['C','H','P']),ca=circ(2,['S','I','T']),NM={E:'le moteur',P:'la pompe',R:'le radiateur',C:'le vilebrequin',H:'la culasse ou les cames',I:'l\'intercooler',S:'le compresseur',T:'l\'alimentation'},miss=(c,rq)=>rq.filter(t=>!c||!c.tags.has(t)).map(t=>NM[t]).join(', ');
+ let cc=40,co=30,oil=0;const lenF=c=>Math.min(1,Math.max(.6,1.1-.012*c.n));
+ if(cw&&cw.ok){const pf=Math.max(...cw.parts.filter(x=>x.cat=='pu').map(x=>L.pu[x.i].f)),cap=cw.parts.filter(x=>x.cat=='rd').reduce((a,x)=>a+L.rd[x.i].cap,0);cc=cap*pf*lenF(cw);M.push(['g','✔ Circuit d\'eau raccordé · '+cw.n+' tuyaux'])}else M.push(['b','✖ Eau : trace un tuyau d\'eau reliant '+miss(cw,['E','P','R'])]);
+ if(cl&&cl.ok){const of=Math.max(...cl.parts.filter(x=>x.cat=='oi').map(x=>L.oi[x.i].f)),k=cl.parts.filter(x=>x.cat=='oc').length;co=(130*of+90*k)*lenF(cl);oil=1;M.push(['g','✔ Circuit d\'huile raccordé · '+cl.n+' tuyaux'+(k?' · refroidisseur':'')])}else M.push(['b','✖ Huile : trace un tuyau d\'huile reliant '+miss(cl,['C','H','P'])+' (sans huile : grippage !)']);
+ if(B>1){const icf=ca&&ca.ok?Math.max(...ca.parts.filter(x=>x.cat=='ic').map(x=>L.ic[x.i].f)):0;if(icf){pen*=1+.07*icf;rp-=3*icf;M.push(['g','✔ Intercooler raccordé'])}else{pen*=.95;rp+=4;M.push(['m','⚠ Air suralimenté non refroidi (−5 %) : conduit d\'air compresseur → intercooler → alimentation'])}}
+ const n=run.length,av=f=>run.reduce((a,q)=>a+f(q.q),0)/n;
+ out.p={n,D:run.reduce((a,q)=>a+[.5,.6,.5][q.x.i],0)};
+ Object.assign(out.p,{v:av(q=>q.h.i+2),cam:av(q=>q.cm?q.cm.i:-1),it:av(q=>q.it.i),cr:av(q=>q.cr.i),fp:run.filter(q=>q.x.i==2).length/n,bb:run.filter(q=>q.x.i==1).length/n,fu:fu.i,hx:hx.i,B,sp,lg,rp,pen,cost:out.cost,w:out.w,cc,co,oil});
+ const last=ex.length?ex[ex.length-1]:hx;
+ out.ok=true;out.wg=wg;out.ref=ref;out.cols=run.map(q=>q.x.c);out.r=r;out.hr=hr;out.ik=ik;out.tail=[last.c+last.w,hr];
+ out.link=cp&&tu?[[(cp.c+cp.w/2)*S,(cp.r+cp.h/2)*S],[(tu.c+tu.w/2)*S,(tu.r+tu.h/2)*S]]:null;
+ M.push(['g','✔ Moteur '+n+' cylindres complet · '+out.p.D.toFixed(1)+' L'+(B>1?' · suralimenté':'')]);return out}
+function render(){A=analyze();let s='';parts().forEach(p=>{s+=`<g class="cell" data-k="${key(p.c,p.r)}" transform="translate(${p.c*S} ${p.r*S})"><title>${L[p.cat][p.i].n}</title>${p.cat=='pp'?pipeTile(p):drawP(p.cat,p.i,p.w)}</g>`});
+ $('#cells').innerHTML=s;$('#hint').style.display=parts().length?'none':'';
+ let ov='';if(A.cols)ov+=`<rect x="${A.cols[0]*S-3}" y="${(A.r-1)*S-3}" width="${A.cols.length*S+6}" height="${2*S+6}" fill="none" stroke="#5fe0a0" stroke-width="2" stroke-dasharray="6 5" rx="6"/>`;
+ (A.bad||[]).forEach(([c,r])=>ov+=`<rect x="${c*S+2}" y="${r*S+2}" width="${S-4}" height="${S-4}" fill="#ff5c5c22" stroke="#ff5c5c" stroke-width="2" rx="6"/>`);
+ if(A.link){const l=A.link;ov+=`<path d="M${l[0][0]} ${l[0][1]}L${l[1][0]} ${l[1][1]}" stroke="#5fd0ff" stroke-width="3" stroke-dasharray="3 6"/><text x="${(l[0][0]+l[1][0])/2}" y="${(l[0][1]+l[1][1])/2-6}" text-anchor="middle" style="fill:#5fd0ff">arbre turbo</text>`}
+ $('#ov').innerHTML=ov;const q=sel=>[...$('#cells').querySelectorAll(sel)].map(el=>{const j=el.closest('[data-j]');return{el,c:+el.closest('.cell').dataset.k.split(',')[0]+(j?+j.dataset.j:0)}});
+ R={pis:q('.pis'),gas:q('.gas'),vi:q('.vi'),ve:q('.ve'),rot:q('.rot')}}
+function upd(){render();E=A.ok?eng(A.p):null;const mi=MIS[$('#mis').value],bud=mi.b,over=A.cost>bud;
+ $('#khp').textContent=E?Math.round(E.hp)+' ch':'–';$('#knm').textContent=E?Math.round(E.nmx)+' Nm':'–';const kr=$('#krel');kr.textContent=E?Math.round(E.rel)+' %':'–';kr.style.color=!E?'':E.rel>=80?'var(--ok)':E.rel>=50?'':'var(--bad)';
+ if(E)A.M.push([E.tw>112||E.oil===0?'b':E.tw>100?'m':'g','Pleine charge : eau '+Math.round(E.tw)+' °C · huile '+Math.round(E.to)+' °C'+(E.dr<1?' → −'+Math.round((1-E.dr)*100)+' % de puissance (surchauffe)':'')]);
+ $('#kt').textContent=E?Math.round(E.tw)+'° / '+Math.round(E.to)+'°':'–';$('#wgl').hidden=!A.wg;if(A.wg){$('#bar').value=bar;$('#barv').textContent=bar.toFixed(2)+' bar (nominal '+A.ref.toFixed(2)+')'}
+ $('#kcs').textContent=A.ok?full(A.p,.05).cs.toFixed(1)+' L/100':'–';
+ $('#kw').textContent=A.w+' kg';$('#kc').textContent=A.cost.toLocaleString('fr')+' €';$('#kc').style.color=over?'var(--bad)':'';$('#kb').style.width=Math.min(100,A.cost/bud*100)+'%';$('#kb').style.background=over?'var(--bad)':'var(--ok)';
+ $('#chk').innerHTML=A.M.map(m=>`<div class="${m[0]}">${m[1]}</div>`).join('')+(over?`<div class="b">✖ Budget dépassé de ${(A.cost-bud).toLocaleString('fr')} €</div>`:`<div class="m">Budget restant : ${(bud-A.cost).toLocaleString('fr')} €</div>`);
+ $('#run').disabled=busy||!A.ok||over;$('#run').textContent=!A.ok?'Moteur incomplet':over?'Budget dépassé':'Lancer les tests';if(E)$('#thr').max=E.rl;chart()}
+function chart(){const W=560,H=210,Lm=38,B=24;let s='';if(!E){$('#ch').innerHTML=`<text x="${W/2}" y="${H/2}" text-anchor="middle">Courbe de puissance : complète le moteur pour la voir</text>`;cX=r=>r;return}
+ const ym=Math.ceil(Math.max(E.hp,E.nmx)*1.1/50)*50,X=r=>Lm+(r-1000)/9000*(W-Lm-10),Y=v=>H-B-v/ym*(H-B-12);cX=X;
+ for(let i=0;i<=4;i++){const v=ym*i/4;s+=`<path d="M${Lm} ${Y(v)}H${W-8}" stroke="#1e4666"/><text x="4" y="${Y(v)+3}">${Math.round(v)}</text>`}
+ for(let r=2000;r<=10000;r+=2000)s+=`<text x="${X(r)-10}" y="${H-8}">${r}</text>`;
+ const pl=(k,c)=>`<polyline fill="none" stroke="${c}" stroke-width="2.5" points="${E.curve.map(p=>X(p[0])+','+Y(p[k])).join(' ')}"/>`;
+ s+=pl(2,'#ff8a3d')+pl(1,'#5fd0ff')+`<text x="${W-190}" y="14" style="fill:#ff8a3d">— Puissance (ch)</text><text x="${W-90}" y="14" style="fill:#5fd0ff">— Couple (Nm)</text><line id="mkr" y1="12" y2="${H-B}" stroke="#fff" stroke-dasharray="3 3"/><rect id="cov" x="${W}" y="10" width="0" height="${H-B-10}" fill="#10293f"/>`;$('#ch').innerHTML=s}
+$('#mis').onchange=()=>{$('#res').hidden=true;upd()};
+// étagère
+function shelf(){let h='';for(const c in L){h+=`<h3>${CN[c]}</h3>`;L[c].forEach((o,i)=>{const w=WIDE.includes(c),[sx,sy]=SZ(c,i,2);h+=`<div class="it" data-c="${c}" data-i="${i}"><svg viewBox="0 0 ${sx*80} ${sy*80}" style="width:${Math.min(2,sx)*46}px">${drawP(c,i,2)}</svg><div><b>${o.n}</b><em>${o.c.toLocaleString('fr')} €${w?' / case':''} · ${o.w} kg</em><small>${o.d}</small><small>Format : ${w?'largeur au choix':sx+'×'+sy+' cases'}</small>${w?'<label class="sub">Largeur <select class="wsel" aria-label="Largeur en cases">'+[2,3,4,5,6].map(n=>`<option${n==4?' selected':''}>${n}</option>`).join('')+'</select> cases</label>':''}</div></div>`})}$('#shelf').innerHTML=h}
+function pt(e){const q=$('#cv').createSVGPoint();q.x=e.clientX;q.y=e.clientY;return q.matrixTransform($('#cv').getScreenCTM().inverse())}
+const cell=p=>[Math.floor(p.x/S),Math.floor(p.y/S)],inb=(c,r)=>c>=0&&r>=0&&c<COLS&&r<ROWS;
+function tip(t){$('#chk').insertAdjacentHTML('afterbegin',`<div class="b" style="grid-column:1/-1">${t}</div>`)}
+function start(e,d){if(busy)return;e.preventDefault();drag={...d,x:e.clientX,y:e.clientY,moved:false};
+ if(d.from){snap();delete grid[key(d.from.c,d.from.r)];render()}
+ $('#ly').innerHTML=`<rect id="hv" width="${d.w*S}" height="${d.h*S}" fill="none" stroke="#5fe0a0" stroke-width="3" rx="6" opacity="0"/><g id="gh" opacity=".9">${drawP(d.cat,d.i,d.w)}</g>`;mv(e)}
+function mv(e){if(painting){const[c,r]=cell(pt(e));if(inb(c,r)){const q=G(c,r);if(e.shiftKey){if(q&&q.cat=='pp'){delete grid[key(q.c,q.r)];upd()}}else if(!q&&fits(c,r,1,1)){add(c,r,'pp',brush.i);upd()}}return}if(!drag)return;if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>5)drag.moved=true;const p=pt(e),[pc,pr]=cell(p),c=pc-drag.gx,r=pr-drag.gy,h=$('#hv');
+ $('#gh').setAttribute('transform',`translate(${p.x-40-drag.gx*S} ${p.y-40-drag.gy*S})`);
+ if(inb(pc,pr)){h.setAttribute('x',c*S);h.setAttribute('y',r*S);h.setAttribute('opacity',1);h.setAttribute('stroke',fits(c,r,drag.w,drag.h)?'#5fe0a0':'#ff5c5c')}else h.setAttribute('opacity',0)}
+function up(e){if(painting){painting=false;return}if(!drag)return;const d=drag;drag=null;$('#ly').innerHTML='';const p=pt(e),[pc,pr]=cell(p),c=pc-d.gx,r=pr-d.gy,inside=inb(pc,pr);
+ if(d.sh&&!d.moved){brush=brush&&brush.cat==d.cat&&brush.i==d.i?null:{cat:d.cat,i:d.i,w:d.w,h:d.h};shMark();return}
+ const ok=inside&&fits(c,r,d.w,d.h);
+ if(ok){if(d.sh)snap();add(c,r,d.cat,d.i,d.w)}else if(d.from&&inside)add(d.from.c,d.from.r,d.cat,d.i,d.w);
+ upd();if(inside&&!ok)tip('✖ Emplacement occupé ou trop petit pour cette pièce.')}
+function shMark(){document.querySelectorAll('.it').forEach(x=>x.classList.toggle('on',!!brush&&x.dataset.c==brush.cat&&+x.dataset.i==brush.i))}
+$('#shelf').addEventListener('pointerdown',e=>{if(e.target.closest('select'))return;const t=e.target.closest('.it');if(!t)return;const sl=t.querySelector('.wsel'),[w,h]=SZ(t.dataset.c,+t.dataset.i,sl?+sl.value:1);start(e,{cat:t.dataset.c,i:+t.dataset.i,w,h,gx:0,gy:0,sh:true})});
+$('#cv').addEventListener('pointerdown',e=>{const t=e.target.closest('.cell');if(t){brush=null;shMark();const o=grid[t.dataset.k],[pc,pr]=cell(pt(e));start(e,{cat:o.cat,i:o.i,w:o.w,h:o.h,gx:pc-o.c,gy:pr-o.r,from:{c:o.c,r:o.r}})}
+ else if(brush){const[c,r]=cell(pt(e));if(brush.cat=='pp'){snap();painting=true;e.preventDefault();if(fits(c,r,1,1)){add(c,r,'pp',brush.i);upd()}}else if(fits(c,r,brush.w,brush.h)){snap();add(c,r,brush.cat,brush.i,brush.w);upd()}}});
+const del=e=>{const t=e.target.closest('.cell');if(t){e.preventDefault();snap();delete grid[t.dataset.k];upd()}};
+$('#cv').addEventListener('contextmenu',del);$('#cv').addEventListener('dblclick',del);
+addEventListener('pointermove',mv);addEventListener('pointerup',up);addEventListener('pointercancel',()=>{drag=null;$('#ly').innerHTML='';upd()});
+const undo=()=>{if(hist.length&&!busy){grid=JSON.parse(hist.pop());upd()}};
+addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key=='z'){e.preventDefault();undo()}});
+$('#un').onclick=undo;$('#bar').oninput=e=>{bar=+e.target.value;upd()};
+$('#cl').onclick=()=>{snap();grid={};$('#res').hidden=true;upd()};
+$('#sv').onclick=()=>{try{localStorage.setItem('sandbox-save',JSON.stringify(grid));tip('💾 Moteur sauvegardé.')}catch(_){tip('✖ Sauvegarde indisponible ici.')}};
+$('#ld').onclick=()=>{try{const v=localStorage.getItem('sandbox-save');if(!v)return tip('✖ Aucune sauvegarde.');snap();grid=JSON.parse(v);upd()}catch(_){tip('✖ Chargement impossible.')}};
+$('#st').onclick=()=>{snap();grid={};const r=4;for(let c=3;c<7;c++)add(c,r,'cy',0);add(3,r+1,'cr',0,4);add(3,r-1,'hv',0,4);add(3,r-2,'cm',0,4);add(3,r-3,'it',0,4);add(2,r-3,'fu',1);add(0,r-3,'ai',0);add(7,r-1,'hx',1);add(8,r-1,'tb',2);add(7,6,'pu',0);add(8,4,'rd',0);add(7,4,'pp',0);add(7,5,'pp',0);add(3,6,'oi',0);[6,5,4,3].forEach(y=>add(2,y,'pp',1));$('#res').hidden=true;upd()};
+// animation
+function frame(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;
+ if(sw){const k=Math.min(1,(performance.now()-sw.t0)/sw.d);rpm=1000+(sw.rl-1000)*k;const cv=$('#cov');if(cv){cv.setAttribute('x',cX(rpm));cv.setAttribute('width',560)}if(k>=1){sw.res();sw=null;if(cv)cv.setAttribute('width',0)}}
+ else rpm+=((A.ok?Math.min(+$('#thr').value,E.rl):0)-rpm)*Math.min(1,dt*4);
+ psi=(psi+rpm*6*dt)%720;
+ if(A.ok&&rpm>20){const n=A.cols.length,ph=c=>(psi+A.cols.indexOf(c)*720/n)%720;
+  R.pis.forEach((o,k)=>{const ix=A.cols.indexOf(o.c);if(ix<0)return;const ps=ph(o.c),y=4+36*(1-Math.cos((ps%360)*Math.PI/180))/2;o.el.setAttribute('transform',`translate(0 ${y})`);const g=R.gas[k].el;
+   const c=ps<180?['#5fd0ff',.25]:ps<360?['#ffd27a',.35]:ps<540?['#ff7a2f',Math.max(.15,.95-(ps-360)/250)]:['#8b98a6',.3];g.setAttribute('height',y);g.setAttribute('fill',c[0]);g.setAttribute('opacity',c[1])});
+  const lift=(a,b,ps)=>ps>a&&ps<b?7*Math.sin((ps-a)/(b-a)*Math.PI):0;
+  R.vi.forEach(o=>{if(A.cols.indexOf(o.c)>=0)o.el.setAttribute('transform',`translate(0 ${lift(10,170,ph(o.c))})`)});R.ve.forEach(o=>{if(A.cols.indexOf(o.c)>=0)o.el.setAttribute('transform',`translate(0 ${lift(550,710,ph(o.c))})`)});
+  R.rot.forEach(o=>{const[a,b]=o.el.dataset.c.split(' '),off=o.el.dataset.p?Math.max(0,A.cols.indexOf(o.c))*720/n:0;o.el.setAttribute('transform',`rotate(${(psi+off)*o.el.dataset.k} ${a} ${b})`)});
+  if(rpm>1100&&Math.random()<rpm/9000)puffs.push({x:A.tail[0]*S-6,y:A.tail[1]*S+36,l:1,e:document.createElementNS('http://www.w3.org/2000/svg','circle')})}
+ puffs=puffs.filter(p=>{if(!p.i){p.i=1;p.e.setAttribute('fill',A.p&&A.p.fu<2?'#555':'#b8c4d0');$('#fx').append(p.e)}p.l-=dt*1.2;p.x+=50*dt;p.y-=8*dt;p.e.setAttribute('cx',p.x);p.e.setAttribute('cy',p.y);p.e.setAttribute('r',3+(1-p.l)*10);p.e.setAttribute('opacity',Math.max(0,p.l*.5));if(p.l<=0)p.e.remove();return p.l>0});
+ const m=$('#mkr');if(m&&E){m.setAttribute('x1',cX(rpm));m.setAttribute('x2',cX(rpm))}
+ $('#live').textContent=E?Math.round(rpm/10)*10+' tr/min · '+Math.round(E.nm(rpm)*rpm/7022)+' ch · '+Math.round(E.nm(rpm))+' Nm · '+E.fl(rpm).toFixed(1)+' L/h · eau '+Math.round(E.twf(rpm))+'° · huile '+Math.round(E.tof(rpm))+'°':'Moteur à l\'arrêt';
+ requestAnimationFrame(frame)}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms/(window.FAST||1)));
+const row=(l,v,c)=>$('#res').insertAdjacentHTML('beforeend',`<div class="rw"><span>${l}</span><b class="${c||''}">${v}</b></div>`);
+$('#run').onclick=async()=>{if(busy||!A.ok)return;busy=true;$('#run').disabled=true;const p={...A.p},r=full(p),mi=MIS[$('#mis').value],R0=$('#res');R0.hidden=false;R0.innerHTML='<div class="sub" style="letter-spacing:.14em;text-transform:uppercase">Résultats des essais</div>';
+ await new Promise(res=>{sw={t0:performance.now(),d:4500/(window.FAST||1),rl:r.rl,res}});
+ row('Banc de puissance',Math.round(r.hp)+' ch à '+r.hr+' tr/min · '+Math.round(r.nmx)+' Nm');await sleep(800);row('Températures (pleine charge)','eau '+Math.round(r.tw)+' °C · huile '+Math.round(r.to)+' °C'+(r.dr<1?' · −'+Math.round((1-r.dr)*100)+' % de puissance':''),r.tw>112||r.to>135||r.oil===0?'b':r.tw<100?'g':'');await sleep(700);
+ row('0 → 100 km/h',r.t.toFixed(1)+' s',r.t<7?'g':r.t>11?'b':'');await sleep(800);
+ row('Vitesse maxi',Math.round(r.vm)+' km/h');await sleep(800);
+ row('Conso mixte (90 km/h)',r.cs.toFixed(1)+' L/100 · autonomie '+Math.round(5000/r.cs)+' km',r.cs<8?'g':r.cs>13?'b':'');await sleep(800);row('Conso pleine charge',r.cf.toFixed(1)+' L/100 · '+r.fl(r.hr).toFixed(0)+' L/h');await sleep(800);row('Poids / puissance',((700+r.w)/r.hp).toFixed(1)+' kg/ch');await sleep(600);
+ row('Endurance 24 h','<span id="eh">0 h</span>');for(let h=1;h<=r.h;h++){$('#eh').textContent=h+' h';await sleep(70)}
+ const ok=r.h>=24;$('#eh').className=ok?'g':'b';$('#eh').textContent=ok?'24 h : il tient !':'CASSE à '+r.h+' h ('+r.cause+')';if(!ok){const e=$('#cv');e.classList.add('boom');setTimeout(()=>e.classList.remove('boom'),1300)}
+ await sleep(800);const b=bestOf($('#mis').value),sc=Math.max(0,Math.round(mi.sc(r))),pc=Math.min(100,Math.round(sc/b.s*100)),st=pc>=90?3:pc>=70?2:1;let rec=0;
+ try{const k='sandbox-'+$('#mis').value;rec=+localStorage.getItem(k)||0;if(sc>rec){localStorage.setItem(k,sc);rec=sc}}catch(_){rec=sc}
+ R0.insertAdjacentHTML('beforeend',`<div class="fin"><div class="s">${'★'.repeat(st)+'☆'.repeat(3-st)}</div><div class="big">${sc} pts · ${pc} % du meilleur moteur</div><div class="sub">Record de cette mission : ${rec}</div><br><button class="btn" id="rv">Révéler le moteur optimal</button><div class="sub" id="rvt" style="margin-top:8px"></div></div>`);
+ $('#rv').onclick=()=>$('#rvt').textContent='Optimal : '+lab(b.c)+' ('+Math.round(mi.sc(full(mk(b.c))))+' pts)';busy=false;upd()};
+shelf();upd();requestAnimationFrame(frame);
+</script></body></html>
